@@ -12,7 +12,9 @@ if (!secretKey) {
 }
 
 app.use(cookieParser())
-app.use(cors())
+app.use(cors({
+  credentials: true,
+}))
 
 app.get('/auth', function (req, res) {
   if (!req.query['key']) {
