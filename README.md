@@ -15,5 +15,4 @@ You should now be able to go to http://mybackend.herokuapp.com/auth?key=abc123 a
 ### TODO
 
 - Set a unique generated session key for that browser session per user
-- Return some fake data
 - Set up Patreon auth and data fetchess

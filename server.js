@@ -11,15 +11,8 @@ if (!secretKey) {
 }
 
 app.use(cookieParser())
-app.get('/pledges', function (req, res) {
-  // Need authentication cookie
-  if (req.cookies['observable-authentication-cookie'] !== secretKey) {
-    res.status(500).send('Need authentication.')
-    return; 
-  }
-  // Here you go
-  res.json(req.cookies)
-})
+
+
 app.get('/auth', function (req, res) {
   if (!req.query['key']) {
     res.status(500).send('Authenticate with /auth?key=THEKEY')
@@ -32,6 +25,19 @@ app.get('/auth', function (req, res) {
     }
   )
   res.status(200).send('Got it, thanks.')
+})
+
+app.get('/pledges', function (req, res) {
+  // Need authentication cookie
+  if (req.cookies['observable-authentication-cookie'] !== secretKey) {
+    res.status(500).send('Need authentication.')
+    return; 
+  }
+  // Here you go
+  res.json([
+    {name: 'david', pledge: {amount: 2, currency: 'USD'}}, 
+    {name: 'mpj', pledge: {amount: 1, currency: 'SEK'}}
+  ])
 })
 
 const port = process.env.PORT || 8888
