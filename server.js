@@ -2,6 +2,7 @@ const express = require('express')
 const cookieParser = require('cookie-parser')
 require('dotenv').config();
 const app = express()
+const cors = require('cors')
 
 const secretKey = process.env.OBSERVABLE_AUTHENTICATION_KEY
 
@@ -11,7 +12,7 @@ if (!secretKey) {
 }
 
 app.use(cookieParser())
-
+app.use(cors())
 
 app.get('/auth', function (req, res) {
   if (!req.query['key']) {

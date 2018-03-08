@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "cookie-parser": "^1.4.3",
+    "cors": "^2.8.4",
     "dotenv": "^5.0.1",
     "express": "^4.16.2"
   }
