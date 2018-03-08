@@ -3,17 +3,17 @@ const cookieParser = require('cookie-parser')
 require('dotenv').config();
 const app = express()
 
-const secretCookie = process.env.OBSERVABLE_AUTHENTICATION_COOKIE
+const secretKey = process.env.OBSERVABLE_AUTHENTICATION_KEY
 
-if (!secretCookie) {
-  console.log('Need secret set to environment variable OBSERVABLE_AUTHENTICATION_COOKIE.')
+if (!secretKey) {
+  console.log('Need secret set to environment variable OBSERVABLE_AUTHENTICATION_KEY.')
   return;
 }
 
 app.use(cookieParser())
 app.get('/pledges', function (req, res) {
   // Need authentication cookie
-  if (req.cookies['observable-authentication-cookie'] !== secretCookie) {
+  if (req.cookies['observable-authentication-cookie'] !== secretKey) {
     res.status(500).send('Need authentication.')
     return; 
   }
