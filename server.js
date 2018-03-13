@@ -1,14 +1,20 @@
 const express = require('express')
 require('dotenv').config();
 const app = express()
-const moment = require('moment')
 const cors = require('cors')
+const uuidv1 = require('uuid/v1')
+const cookieParser = require('cookie-parser')
 
 const secretKey = process.env.OBSERVABLE_AUTHENTICATION_KEY
 
 if (!secretKey) {
   console.log('Need secret set to environment variable OBSERVABLE_AUTHENTICATION_KEY.')
   return;
+}
+
+let sessions = []
+const isAllowed = (id) => {
+  return sessions.some(session => (session.expiresAt >= Date.now() && session.id === id)) 
 }
 
 app.use(cookieParser('secret123'))
@@ -21,22 +27,30 @@ app.use(cors({
 
 app.get('/auth', function (req, res) {
   if (!req.query['key']) {
-    res.status(500).send('Authenticate with /auth?key=THEKEY')
+    res.status(403).send('Authenticate with /auth?key=THEKEY')
     return;
   }
-  res.cookie('observable-authentication-cookie', 
-    req.query['key'], { 
-      expires: new Date(Date.now() + 30*60*1000), 
-      httpOnly: true
-    }
-  )
+  if (req.query['key'] === secretKey) {
+    const sessionId = uuidv1()
+    const timeout = 30*60*1000
+    sessions.push({id: sessionId, expiresAt: Date.now() + timeout})
+    res.cookie('observable-authentication-cookie', 
+      sessionId, { 
+        maxAge: timeout,
+        httpOnly: true
+      }
+    )
+    res.status(200).send('Set a cookie valid for 30 minutes, thanks.')
+    return;
+  }
   res.status(200).send('Got it, thanks.')
 })
 
 app.get('/pledges', function (req, res) {
   // Need authentication cookie
-  if (req.cookies['observable-authentication-cookie'] !== secretKey) {
-    res.status(500).send('Need authentication.')
+  if (!req.cookies['observable-authentication-cookie'] ||
+      !isAllowed(req.cookies['observable-authentication-cookie'])) {
+    res.status(403).send('Not Allowed')
     return; 
   }
   // Here you go
@@ -45,6 +59,10 @@ app.get('/pledges', function (req, res) {
     {name: 'mpj', pledge: {amount: 1, currency: 'SEK'}}
   ])
 })
+
+app.use(function(req, res, next) {
+  res.status(404).send('Not Found');
+});
 
 const port = process.env.PORT || 8888
 app.listen(port, () => {
