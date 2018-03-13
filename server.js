@@ -11,27 +11,13 @@ if (!secretKey) {
   return;
 }
 
-let allowedIPs = []
-const isAllowed = (ip) => {
-  let uniqueAllowedIPs = [...(new Set(allowedIPs.filter(connection => connection.expiresAt >= Date.now()).map(({ ip }) => ip)))]
-  return uniqueAllowedIPs.some(allowedIp => ip === allowedIp)
-}
-
-// Validate provided key and add IP to list if it it matches server key
-const validateAuthenticationKey = (req) => {
-  if (req.query['key'] !== secretKey) {
-    return `Got it, thanks.`
-  }
-  const allowedConnection = {ip: req.connection.remoteAddress, expiresAt: Date.now() + 30*60*1000}
-  allowedIPs.push(allowedConnection)
-  let message = `Got it, thanks. ${allowedConnection.ip} is allowed ` +
-    `until ${moment(new Date(allowedConnection.expiresAt)).format('YYYY-MM-DD HH:mm')}.`
-  console.log(message)
-  return message
-}
-
-app.use(cors())
-app.enable('trust proxy')
+app.use(cookieParser('secret123'))
+app.use(cors({
+  origin: function (origin, callback) {
+    callback(null, true)
+  },
+  credentials: true
+}))
 
 // If proper key is provided, add IP to list of allowed IPs
 app.get('/auth', function (req, res) {
