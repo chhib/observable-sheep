@@ -27,8 +27,8 @@ const validateAuthenticationKey = (req) => {
   }
 
   const formatIp = (req) => {
-    let ipAddress = (req.headers['x-forwarded-for'] && req.headers['x-forwarded-for'].split(',').pop()) || 
-      req.connection.remoteAddress
+let ipAddress = (req.headers['x-forwarded-for'] && req.headers['x-forwarded-for'].split(',').pop()) || 
+  req.connection.remoteAddress
     if (iputil.isV6Format(ipAddress) && ~ipAddress.indexOf('::ffff')) {
       ipAddress = ipAddress.split('::ffff:')[1];
     }
@@ -45,6 +45,7 @@ const validateAuthenticationKey = (req) => {
 }
 
 app.use(cors())
+app.enable('trust proxy')
 
 // If proper key is provided, add IP to list of allowed IPs
 app.get('/auth', function (req, res) {
