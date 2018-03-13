@@ -27,7 +27,8 @@ const validateAuthenticationKey = (req) => {
   }
 
   const formatIp = (req) => {
-    let ipAddress = req.connection.remoteAddress
+    let ipAddress = (req.headers['x-forwarded-for'] && req.headers['x-forwarded-for'].split(',').pop()) || 
+      req.connection.remoteAddress
     if (iputil.isV6Format(ipAddress) && ~ipAddress.indexOf('::ffff')) {
       ipAddress = ipAddress.split('::ffff:')[1];
     }
