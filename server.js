@@ -20,24 +20,33 @@ const ips = () => {
   return uniqueAllowedIPs
 }
 
+const getClientIp = (req) => {
+  var ipAddress;
+
+  ipAddress = req.connection.remoteAddress;
+
+  if (!ipAddress) {
+    return '';
+  }
+
+  if (iputil.isV6Format(ipAddress) && ~ipAddress.indexOf('::ffff')) {
+    ipAddress = ipAddress.split('::ffff:')[1];
+  }
+
+  if (iputil.isV4Format(ipAddress) && ~ipAddress.indexOf(':')) {
+    ipAddress = ipAddress.split(':')[0];
+  }
+
+  return ipAddress;
+}
+
 // Validate provided key and add IP to list if it it matches server key
 const validateAuthenticationKey = (req) => {
   if (req.query['key'] !== secretKey) {
     return `Got it, thanks.`
   }
 
-  const formatIp = (req) => {
-let ipAddress = (req.headers['x-forwarded-for'] && req.headers['x-forwarded-for'].split(',').pop()) || 
-  req.connection.remoteAddress
-    if (iputil.isV6Format(ipAddress) && ~ipAddress.indexOf('::ffff')) {
-      ipAddress = ipAddress.split('::ffff:')[1];
-    }
-    if (iputil.isV4Format(ipAddress) && ~ipAddress.indexOf(':')) {
-      ipAddress = ipAddress.split(':')[0];
-    }
-    return ipAddress
-  }
-  const allowedConnection = {ip: formatIp(req), expiresAt: Date.now() + 30*60*1000}
+  const allowedConnection = {ip: getClientIp(req), expiresAt: Date.now() + 30*60*1000}
   allowedIPs.push(allowedConnection)
   let message = `Got it, thanks. ${allowedConnection.ip} is allowed ` +
     `until ${moment(new Date(allowedConnection.expiresAt)).format('YYYY-MM-DD HH:mm')}.`
