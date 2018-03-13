@@ -5,6 +5,7 @@ const iputil = require('ip')
 const ipfilter = require('express-ipfilter').IpFilter
 const moment = require('moment')
 const IpDeniedError = require('express-ipfilter').IpDeniedError
+const cors = require('cors')
 
 const secretKey = process.env.OBSERVABLE_AUTHENTICATION_KEY
 let allowedIPs = []
@@ -53,6 +54,7 @@ app.get('/auth', function (req, res) {
 })
 
 // Only allow access to endpoint if in list of allowed IPs
+app.use('/pledges', cors())
 app.get('/pledges', ipfilter(ips, {mode: 'allow', logLevel: 'all'}), function (req, res) {
   // Here you go
   res.json([
@@ -74,6 +76,9 @@ app.use(function(err, req, res, _next) {
   res.status(err.status || 500);
   res.send(err.message);
 });
+
+// allow other services to fetch data
+
 
 const port = process.env.PORT || 8888
 app.listen(port, () => {
