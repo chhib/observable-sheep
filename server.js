@@ -19,34 +19,32 @@ app.use(cors({
   credentials: true
 }))
 
-// If proper key is provided, add IP to list of allowed IPs
 app.get('/auth', function (req, res) {
   if (!req.query['key']) {
-    res.status(403).send('Authenticate with /auth?key=THEKEY')
+    res.status(500).send('Authenticate with /auth?key=THEKEY')
     return;
   }
-  let message = validateAuthenticationKey(req)
-  res.status(200).send(message)
+  res.cookie('observable-authentication-cookie', 
+    req.query['key'], { 
+      expires: new Date(Date.now() + 30*60*1000), 
+      httpOnly: true
+    }
+  )
+  res.status(200).send('Got it, thanks.')
 })
 
-// Only allow access to endpoint if in list of allowed IPs
 app.get('/pledges', function (req, res) {
-  if (!isAllowed(req.connection.remoteAddress)) {
-    res.status(403).send('Not Allowed')
-    return;
+  // Need authentication cookie
+  if (req.cookies['observable-authentication-cookie'] !== secretKey) {
+    res.status(500).send('Need authentication.')
+    return; 
   }
-
   // Here you go
   res.json([
     {name: 'david', pledge: {amount: 2, currency: 'USD'}}, 
     {name: 'mpj', pledge: {amount: 1, currency: 'SEK'}}
   ])
 })
-
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-  res.status(404).send('Not Found');
-});
 
 const port = process.env.PORT || 8888
 app.listen(port, () => {

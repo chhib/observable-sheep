@@ -1,7 +1,6 @@
 Small server used to retrieve Patreon pledges to visualize using Observable.
 
-Authentication is done by providing a key, which if correct allows that IP access to the endpoint for 30 minutes.
-
+Authentication is done by providing a key, which if correct sets a cookie that's valid for 30 minutes.
 
 ```
 heroku create mybackend
@@ -13,7 +12,7 @@ You should now be able to go to http://mybackend.herokuapp.com/auth?key=abc123 a
 
 
 ### TODO
-
+- Use a session cookie instead of the key as cookie value
 - Add sign-in instead of key as GET parameter (Auth0?)
 - Add Patreon auth and data fetches
 - Add YouTube auth and data fetches
