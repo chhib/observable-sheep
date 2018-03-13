@@ -1,11 +1,9 @@
 const express = require('express')
 require('dotenv').config();
 const app = express()
-const iputil = require('ip')
-const ipfilter = require('express-ipfilter').IpFilter
 const moment = require('moment')
-const IpDeniedError = require('express-ipfilter').IpDeniedError
 const cors = require('cors')
+const requestIp = require('request-ip');
 
 const secretKey = process.env.OBSERVABLE_AUTHENTICATION_KEY
 let allowedIPs = []
@@ -20,39 +18,22 @@ const ips = () => {
   return uniqueAllowedIPs
 }
 
-const getClientIp = (req) => {
-  var ipAddress;
-
-  ipAddress = req.connection.remoteAddress;
-
-  if (!ipAddress) {
-    return '';
-  }
-
-  if (iputil.isV6Format(ipAddress) && ~ipAddress.indexOf('::ffff')) {
-    ipAddress = ipAddress.split('::ffff:')[1];
-  }
-
-  if (iputil.isV4Format(ipAddress) && ~ipAddress.indexOf(':')) {
-    ipAddress = ipAddress.split(':')[0];
-  }
-
-  return ipAddress;
-}
+const isAllowed = (ip) => ips().some(allowedIp => ip === allowedIp)
 
 // Validate provided key and add IP to list if it it matches server key
 const validateAuthenticationKey = (req) => {
   if (req.query['key'] !== secretKey) {
     return `Got it, thanks.`
   }
-
-  const allowedConnection = {ip: getClientIp(req), expiresAt: Date.now() + 30*60*1000}
+  const allowedConnection = {ip: req.clientIp, expiresAt: Date.now() + 30*60*1000}
   allowedIPs.push(allowedConnection)
   let message = `Got it, thanks. ${allowedConnection.ip} is allowed ` +
     `until ${moment(new Date(allowedConnection.expiresAt)).format('YYYY-MM-DD HH:mm')}.`
+  console.log(message)
   return message
 }
 
+app.use(requestIp.mw())
 app.use(cors())
 app.enable('trust proxy')
 
@@ -67,7 +48,14 @@ app.get('/auth', function (req, res) {
 })
 
 // Only allow access to endpoint if in list of allowed IPs
-app.get('/pledges', ipfilter(ips, {mode: 'allow', logLevel: 'all'}), function (req, res) {
+app.get('/pledges', function (req, res, next) {
+  if (!isAllowed(req.clientIp)) {
+    var err = new Error('Not Allowed');
+    err.status = 403;
+    next(err)
+    return;
+  }
+
   // Here you go
   res.json([
     {name: 'david', pledge: {amount: 2, currency: 'USD'}}, 
