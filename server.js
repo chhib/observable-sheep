@@ -43,6 +43,8 @@ const validateAuthenticationKey = (req) => {
   return message
 }
 
+app.use(cors())
+
 // If proper key is provided, add IP to list of allowed IPs
 app.get('/auth', function (req, res) {
   if (!req.query['key']) {
@@ -54,7 +56,6 @@ app.get('/auth', function (req, res) {
 })
 
 // Only allow access to endpoint if in list of allowed IPs
-app.use('/pledges', cors())
 app.get('/pledges', ipfilter(ips, {mode: 'allow', logLevel: 'all'}), function (req, res) {
   // Here you go
   res.json([
