@@ -1,0 +1,24 @@
+<html>
+<head>
+    <script src="https://cdn.auth0.com/js/lock/10.9.0/lock.min.js"></script>
+    <script>
+        window.addEventListener('load', function() {
+            var lock = new Auth0Lock(
+                'xroEKXENDcAeP2HaMq970Ff0zlYoiv7c',
+                'maximumsheep.eu.auth0.com', {
+                    auth: {
+                        redirectUrl: document.location.protocol + '//' + document.location.host + '/login',
+                        responseType: 'id_token',
+                        params: {
+                            scope: 'openid email'
+                        }}})
+            lock.show()
+            lock.on('authenticated', function (authResult) {
+                lock.hide()
+                document.cookie = "auth0JWT=" + authResult.idToken + ";path=/;max-age=1800"
+            })
+        });
+      </script>
+</head>
+<body>Login<br/><a href="/pledges">Pledges</a></body>
+</html>

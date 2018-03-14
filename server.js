@@ -4,28 +4,12 @@ const app = express()
 const cors = require('cors')
 const uuidv1 = require('uuid/v1')
 const cookieParser = require('cookie-parser')
-const jwt = require('express-jwt');
+const path = require("path")
+const jwt = require('express-jwt')
 const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
 
-const secretKey = process.env.OBSERVABLE_AUTHENTICATION_KEY
-if (!secretKey) {
-  console.log('Need secret set to environment variable OBSERVABLE_AUTHENTICATION_KEY.')
-  return;
-}
-
-let sessions = []
-const isAllowed = (id) => {
-  return sessions.some(session => (session.expiresAt >= Date.now() && session.id === id)) 
-}
-
-// Authentication middleware. When used, the
-// Access Token must exist and be verified against
-// the Auth0 JSON Web Key Set
-const checkJwt = jwt({
-  // Dynamically provide a signing key
-  // based on the kid in the header and 
-  // the signing keys provided by the JWKS endpoint.
+const authenticate = jwt({
   secret: jwksRsa.expressJwtSecret({
     cache: true,
     rateLimit: true,
@@ -33,12 +17,17 @@ const checkJwt = jwt({
     jwksUri: `https://maximumsheep.eu.auth0.com/.well-known/jwks.json`
   }),
 
-  // Validate the audience and the issuer.
-  audience: `https://maximumsheep.eu.auth0.com/api/v2/`,
+  // Have to comment out audience to make it work according to https://github.com/auth0-blog/nodejs-jwt-authentication-sample/issues/30
+ // audience: 'https://maximumsheep.eu.auth0.com/api/v2/',
   issuer: `https://maximumsheep.eu.auth0.com/`,
-  algorithms: ['RS256']
+  algorithms: ['RS256'],
+  getToken: (req) => {
+    if (req.cookies && req.cookies.auth0JWT) {
+      return req.cookies.auth0JWT;
+    }
+    return null;
+  }
 });
-
 
 app.use(cookieParser('secret123'))
 app.use(cors({
@@ -48,50 +37,9 @@ app.use(cors({
   credentials: true
 }))
 
-// This route need authentication
-app.get('/api/private', checkJwt, function(req, res) {
-  res.json({
-    message: 'Hello from a private endpoint! You need to be authenticated to see this.'
-  });
-});
+app.get('/login', (req, res) => res.sendFile(__dirname + '/login.html'))
 
-// const checkScopes = jwtAuthz([ 'read:messages' ]);
-
-// app.get('/api/private-scoped', checkJwt, checkScopes, function(req, res) {
-//   res.json({
-//     message: 'Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this.'
-//   });
-// });
-
-app.get('/auth', function (req, res) {
-  if (!req.query['key']) {
-    res.status(403).send('Authenticate with /auth?key=THEKEY')
-    return;
-  }
-  if (req.query['key'] === secretKey) {
-    const sessionId = uuidv1()
-    const timeout = 30*60*1000
-    sessions.push({id: sessionId, expiresAt: Date.now() + timeout})
-    res.cookie('observable-authentication-cookie', 
-      sessionId, { 
-        maxAge: timeout,
-        httpOnly: true
-      }
-    )
-    res.status(200).send('Set a cookie valid for 30 minutes, thanks.')
-    return;
-  }
-  res.status(200).send('Got it, thanks.')
-})
-
-app.get('/pledges', function (req, res) {
-  // Need authentication cookie
-  if (!req.cookies['observable-authentication-cookie'] ||
-      !isAllowed(req.cookies['observable-authentication-cookie'])) {
-    res.status(403).send('Not Allowed')
-    return; 
-  }
-  // Here you go
+app.get('/pledges', authenticate, function (req, res) {
   res.json([
     {name: 'david', pledge: {amount: 2, currency: 'USD'}}, 
     {name: 'mpj', pledge: {amount: 1, currency: 'SEK'}}
@@ -108,11 +56,11 @@ app.use(function (err, req, res, next) {
   }
 });
 
-// app.use(function(req, res, next) {
-//   res.status(404).send('Not Found');
-// });
+app.use(function(req, res, next) {
+  res.status(404).send('Not Found');
+});
 
 const port = process.env.PORT || 8888
 app.listen(port, () => {
-  console.log(`Listening on port ${port}. Go /auth to set the cookie used for /pledges.`)
+  console.log(`Listening on port ${port}. /login to get authed for /pledges.`)
 })
