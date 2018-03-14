@@ -16,9 +16,8 @@ const authenticate = jwt({
     jwksRequestsPerMinute: 5,
     jwksUri: `https://maximumsheep.eu.auth0.com/.well-known/jwks.json`
   }),
-
   // Have to comment out audience to make it work according to https://github.com/auth0-blog/nodejs-jwt-authentication-sample/issues/30
- // audience: 'https://maximumsheep.eu.auth0.com/api/v2/',
+  // audience: 'https://maximumsheep.eu.auth0.com/api/v2/',
   issuer: `https://maximumsheep.eu.auth0.com/`,
   algorithms: ['RS256'],
   getToken: (req) => {
