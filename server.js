@@ -46,7 +46,14 @@ app.get('/pledges', authenticate, function (req, res) {
 })
 
 app.get('/patreon', authenticate, (req, res) => {
-  patreon.fetch(req.query.query).then(data => res.json(data))
+  if (!req.query.query) {
+    res.status(401).send('Must provide a ?query')
+    return;
+  }
+  patreon
+    .fetch(req.query.query)
+    .then(data => res.json(data))
+    .catch(error => res.status(401).send(error.name))
 })
 
 app.use(function (err, req, res, next) {
