@@ -1,7 +1,6 @@
 const fetch = require('node-fetch')
 const fs = require('fs')
 require('dotenv').config();
-const moment = require('moment')
 
 const clientId = process.env.PATREON_CLIENT_ID
 const clientSecret = process.env.PATREON_CLIENT_SECRET

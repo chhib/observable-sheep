@@ -6,6 +6,9 @@ const jwt = require('express-jwt')
 const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
 const patreon = require('./src/patreon')
+const apicache = require('apicache')
+const moment = require('moment')
+
 const authenticate = jwt({
   secret: jwksRsa.expressJwtSecret({
     cache: true,
@@ -33,16 +36,18 @@ app.use(cors({
   },
   credentials: true
 }))
+const cache = apicache.middleware
 
 app.get('/login', (req, res) => res.sendFile(__dirname + '/login.html'))
 
 app.get('/pledges', authenticate, function (req, res) {
   res.json([
-    {name: 'david', pledge: {amount: 2, currency: 'USD'}}, 
-    {name: 'mpj', pledge: {amount: 1, currency: 'SEK'}}
+    {name: 'david', pledge: {HHmmss: moment().format('HH:mm:ss'), currency: 'USD'}}, 
+    {name: 'mpj', pledge: {HHmmss: moment().format('HH:mm:ss'), currency: 'SEK'}}
   ])
 })
 
+// app.get('/patreon', authenticate, cache('1 hour'), (req, res) => {
 app.get('/patreon', authenticate, (req, res) => {
   if (!req.query.query) {
     res.status(401).send('Must provide a ?query')
