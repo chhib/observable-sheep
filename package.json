@@ -19,6 +19,7 @@
     "jsonwebtoken": "^8.2.0",
     "jwks-rsa": "^1.2.1",
     "moment": "^2.21.0",
+    "node-fetch": "^2.1.1",
     "request-ip": "^2.0.2",
     "uuid": "^3.2.1"
   }

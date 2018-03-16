@@ -8,7 +8,7 @@ const path = require("path")
 const jwt = require('express-jwt')
 const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
-
+const patreon = require('./src/patreon')
 const authenticate = jwt({
   secret: jwksRsa.expressJwtSecret({
     cache: true,
@@ -43,6 +43,10 @@ app.get('/pledges', authenticate, function (req, res) {
     {name: 'david', pledge: {amount: 2, currency: 'USD'}}, 
     {name: 'mpj', pledge: {amount: 1, currency: 'SEK'}}
   ])
+})
+
+app.get('/patreon', authenticate, (req, res) => {
+  patreon.fetch(req.query.query).then(data => res.json(data))
 })
 
 app.use(function (err, req, res, next) {
