@@ -1,10 +1,7 @@
 const express = require('express')
 require('dotenv').config();
-const app = express()
 const cors = require('cors')
-const uuidv1 = require('uuid/v1')
 const cookieParser = require('cookie-parser')
-const path = require("path")
 const jwt = require('express-jwt')
 const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
@@ -28,6 +25,7 @@ const authenticate = jwt({
   }
 });
 
+const app = express()
 app.use(cookieParser('secret123'))
 app.use(cors({
   origin: function (origin, callback) {
