@@ -9,23 +9,9 @@ const gtoken = new GoogleToken({
     'https://www.googleapis.com/auth/yt-analytics.readonly']
 });
 
-
-gtoken.getToken()
-  .then(token => {
-    console.log(token)
-    return fetch(`https://www.googleapis.com/youtube/v3/channels?part=contentDetails&id=UCO1cgjhGzsSYb1rsB4bFe4Q`, {
-      headers: {
-        Authorization: `Bearer ${token}`
-      }
-    })
-  })
-  .then(response => response.json())
-  .then(body => {
-    console.log('fick jag nåt?')
-    console.log(body.items.map(itm => itm.contentDetails))
-  })
-  .catch(e => console.error);
-
-this.printToken = () => {
-  console.log(googleToken)
+this.fetch = async (url) => {
+  (process.env.NODE_ENV !== 'production') && console.log(`Fetching: ${url}`)
+  return gtoken.getToken()
+    .then(token => fetch(url, {headers: { Authorization: `Bearer ${token}` }}))
+    .then(response => response.json())
 }
