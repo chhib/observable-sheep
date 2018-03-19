@@ -6,6 +6,7 @@ const jwt = require('express-jwt')
 const jwtAuthz = require('express-jwt-authz');
 const jwksRsa = require('jwks-rsa');
 const patreon = require('./src/patreon')
+const youtube = require('./src/youtube')
 const apicache = require('apicache')
 const moment = require('moment')
 
