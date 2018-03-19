@@ -47,14 +47,15 @@ app.get('/pledges', authenticate, function (req, res) {
   ])
 })
 
-// app.get('/patreon', authenticate, cache('1 hour'), (req, res) => {
-app.get('/patreon', authenticate, (req, res) => {
+const decodeURIWithBrackets = (str) => decodeURI(str).replace(/\[/g, '%5B').replace(/\]/g, '%5D')
+
+app.get('/patreon', authenticate, cache('1 hour'), (req, res) => {
   if (!req.query.query) {
     res.status(401).send('Must provide a ?query')
     return;
   }
   patreon
-    .fetch(req.query.query)
+    .fetch(decodeURIWithBrackets(req.query.query))
     .then(data => res.json(data))
     .catch(error => res.status(401).send(error.name))
 })
