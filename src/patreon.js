@@ -23,18 +23,29 @@ const getTokensExpiration = () => {
 }
 
 const refreshTokensAndGetExpiration = (error) => {
-  (process.env.NODE_ENV !== 'production') && console.log(`Got error: ${error}. Attempting to refresh tokens.`)
+  
   const url = `https://www.patreon.com/api/oauth2/token` +
     `?grant_type=refresh_token` + 
     `&refresh_token=${refreshToken}` +
     `&client_id=${clientId}` +
     `&clientSecret=${clientSecret}`
+
+  console.log(`Attempting to refresh PATREON_REFRESH_TOKEN=${refreshToken}`)
+
   return fetch(url, {method: 'POST'})
     .then(response => response.json())
     .then(body => {
       accessToken = body.access_token
       refreshToken = body.refresh_token
       expires = body.expires_in*1000 + Date.now()
+      
+      const message = `PATREON_ACCESS_TOKEN=${accessToken}\n` +
+        `PATREON_REFRESH_TOKEN=${refreshToken}\n` +
+        `PATREON_EXPIRES=${expires}`
+
+      console.log(`Refreshed Patreon tokens:`)
+      console.log(message)
+
       return new Promise((resolve, reject) => {
         if (process.env.NODE_ENV !== 'production') {
           const file = `PATREON_CLIENT_ID=${clientId}\n` +
